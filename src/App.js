@@ -23,6 +23,7 @@ import DarkModeComponent from "./22-useDarkMode/DarkModeComponent"
 import CopyToClipboardComponent from "./23-useCopyToClipboard/CopyToClipboardComponent"
 import CookieComponent from "./24-useCookie/CookieComponent"
 import TranslationComponent from "./25-useTranslation/TranslationComponent"
+import FormComponent from "./99-useForm/FormComponent";
 
 function App() {
   // return <ToggleComponent />
@@ -49,7 +50,8 @@ function App() {
   // return <DarkModeComponent />
   // return <CopyToClipboardComponent />
   // return <CookieComponent />
-  return <TranslationComponent />
+  //return <TranslationComponent />
+  return <FormComponent />
 }
 
 export default App
