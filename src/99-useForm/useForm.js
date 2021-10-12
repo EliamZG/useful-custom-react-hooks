@@ -36,7 +36,7 @@ export default function useForm(initialState, reducer) {
 
   /**
    * @param {function} action - The action that should be performed if the validations pass when submitting the form.
-   * Due to requirements if the validation fails a rejected promise is returned.  
+   * Due to requirements handleSubmit returns a promise, so in case the submission shouldn't continue a rejected promise is returned and the function used as the action when validation passes should also return a function, personally I use axios.
    */
   const handleSubmit = (action) => {
     let proceedWithSubmission = true
@@ -47,8 +47,8 @@ export default function useForm(initialState, reducer) {
       if (!passes) proceedWithSubmission = false
       dispatch({ type: 'VALIDATION', field: key, hasError: !passes, message: message })
     }
-    if (!proceedWithSubmission) return Promise.reject() //could just return if the caller does not expect a promise
-    action(state)
+    if (!proceedWithSubmission) return Promise.reject('Errors in the form.') //could just return if the caller does not expect a promise
+    return action(state)
   }
 
   /**
@@ -63,7 +63,6 @@ export default function useForm(initialState, reducer) {
    * A shortcut to dispatching a 'RESET' order for any particular field
    */
   const resetForm = () => {
-    debugger
     let newState = copyObject(initialState)
     dispatch({ type: 'RESET', payload: { ...newState } })
   }
@@ -155,11 +154,11 @@ function fieldValidation(validations, pattern, value) {
 function validate(validation, value, pattern) {
   switch (validation) {
     case 'required':
-      return value !== '' ? { valid: true, message: '' } : { valid: false, message: 'El campo es requerido.' }
+      return value !== '' ? { valid: true, message: '' } : { valid: false, message: 'Required field.' }
     case 'select_required':
-      return value !== -1 ? { valid: true, message: '' } : { valid: false, message: 'El campo es requerido.' }
+      return value !== -1 ? { valid: true, message: '' } : { valid: false, message: 'Required field.' }
     case 'pattern':
-      return checkPattern(value, pattern) ? { valid: true, message: '' } : { valid: false, message: 'El campo no tiene el formato adecuado.' }
+      return checkPattern(value, pattern) ? { valid: true, message: '' } : { valid: false, message: 'Wrong field format.' }
     default:
       return { valid: true, message: '' }
   }
