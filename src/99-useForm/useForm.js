@@ -36,7 +36,8 @@ export default function useForm(initialState, reducer) {
 
   /**
    * @param {function} action - The action that should be performed if the validations pass when submitting the form.
-   * Due to requirements handleSubmit returns a promise, so in case the submission shouldn't continue a rejected promise is returned and the function used as the action when validation passes should also return a function, personally I use axios.
+   * Due to requirements handleSubmit returns a promise, so in case the submission shouldn't continue a rejected promise is returned and the function used as the action when validation passes should also return a promise.
+   * Personally my action functions are mostly server calls so I use axios since it uses Promises as well.
    */
   const handleSubmit = (action) => {
     let proceedWithSubmission = true
