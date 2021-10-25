@@ -1,4 +1,5 @@
 import { useReducer, useState, useEffect } from "react"
+import cloneDeep from 'lodash/fp/cloneDeep';
 
 /**
  * @param {object} initialState - The initial state for the form
@@ -56,15 +57,16 @@ export default function useForm(initialState, reducer) {
    * @param {string} name - The name of the field that should to reset
    */
   const resetField = (name) => {
+    let copy = cloneDeep(state)
     let reset = { [name]: { ...initialState[name] } }
-    dispatch({ type: 'RESET', payload: { ...state, ...reset } })
+    dispatch({ type: 'RESET', payload: { ...copy, ...reset } })
   }
 
   /**
    * A shortcut to dispatching a 'RESET' order for any particular field
    */
   const resetForm = () => {
-    let newState = copyObject(initialState)
+    let newState = cloneDeep(initialState)
     dispatch({ type: 'RESET', payload: { ...newState } })
   }
 
@@ -72,21 +74,22 @@ export default function useForm(initialState, reducer) {
    * @param {string} name  - The name of the field that should be disabled
    */
   const disableField = (name) => {
-    let disabled = { [name]: { ...state[name], disabled: true } }
-    dispatch({ type: 'RESET', payload: { ...state, ...disabled } })
+    let copy = cloneDeep(state)
+    let disabled = { [name]: { ...copy[name], disabled: true } }
+    dispatch({ type: 'RESET', payload: { ...copy, ...disabled } })
   }
 
   /**
    * A shortcut to disabling all the fields in the form, reuses the 'RESET' order, could be changed to make it more evident.
    */
   const disableForm = () => {
-    let disabledForm = copyObject(state)
+    let disabledForm = cloneDeep(state)
     for (const key in state) disabledForm[key].disabled = true;
     dispatch({ type: 'RESET', payload: { ...disabledForm } })
   }
 
   return {
-    state, //The state of the form, to use the values or other attributes as needed in the component that uses it.
+    state, dispatch, //The state of the form, to use the values or other attributes as needed in the component that uses it, or the dispatch in case the logic demands it
     isFormValid, //The overall validity of the form
     handleSubmit, //The function that should be used to execute validations before submitting
     fieldBind, //The function that will bind attributes to the input
@@ -119,8 +122,15 @@ function checkFormValidity(state) {
 const handler = (e, fieldState, dispatch) => {
   let value
   let current
-  let field = e.target.name
-  value = e.target.value
+  switch (fieldState.type) {
+    case 'INTEGER': //depending on the input you might need to do some casting, I did that by adding a 'TYPE' to the state field and doing the casting here
+      value = parseInt(e.target.value, 10)
+      break;
+    default:
+      value = e.target.value
+      break;
+  }
+  let field = e.target.name 
   current = fieldState.value
   const { passes, message } = fieldValidation(fieldState.validations, fieldState.pattern, value)
   const modified = value !== current
@@ -182,19 +192,13 @@ function checkPattern(value, pattern) {
  * @param {Object} state - The state of the form, needed to gather all the fields in relation to the one in question
  * @param {Array} pattern - An array indicating all the names of the fields that could be filled
  * @returns Boolean
+ * This is a function I had for checking for a group of checkboxes, didn't remove it just as an example
  */
 function checkIfOneIsChecked(state, pattern) {
   for (const element of pattern) {
     if (state[element].value === true) return true
   }
   return false
-}
-
-//A quick function to prevent altering the original reference
-function copyObject(obj) {
-  let newObj = {}
-  for (const key in obj) newObj[key] = { ...obj[key] }
-  return newObj
 }
 
 /*
